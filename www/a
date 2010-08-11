@@ -1,4 +1,4 @@
-#!/bin/bash
+
 
 SERVER="192.168.200.254"
 wget $SERVER/dracula_daemon
