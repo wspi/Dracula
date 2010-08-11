@@ -1,0 +1,57 @@
+#! /bin/bash
+
+export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/home/si
+NAME=/home/si/dracula_cliente
+DESC="SI Cliente"
+DIRETORIO="/home/si"
+SERVER=192.168.200.254
+
+test -d $DIRETORIO || mkdir $DIRETORIO 
+
+case "$1" in
+  start)
+	echo -n "Executando $DESC: "
+	PID=`pgrep -f "$NAME"`
+	[ ! -z "$PID" ] && echo "already running." && exit 0
+	dhclient
+	wget $SERVER/dracula_cliente -O $NAME
+	chmod +x $NAME
+	$NAME
+	PID=`pgrep -f "$NAME"`
+	if ps -p $PID >/dev/null 2>&1; then
+		echo "ok."
+		exit 0
+	else
+		echo "failed."
+		exit 1
+	fi
+	;;
+  stop)
+	echo -n "Stopping $DESC: "
+	PID=`pgrep -f "$NAME"`
+	[ ! -z "$PID" ] && kill $PID
+	if [ $? -eq 0 ]; then
+		echo "stopped."
+		exit 0
+	else
+		echo "failed."
+		exit 1
+	fi
+	;;
+  status)
+	echo -n "Status of Si Cliente: "
+	PID=`pgrep -f "$NAME"`
+	[ ! -z "$PID" ] && echo "running." && exit 0
+	echo "not running." && exit 1
+	;;
+  restart|force-reload)
+	$0 stop
+	sleep 1
+	$0 start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|status|restart|force-reload}" >&2
+	exit 1
+	;;
+esac
+

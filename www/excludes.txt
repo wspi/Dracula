@@ -1,0 +1,14 @@
+/etc/mtab
+/proc/
+/sys/
+/etc/lvm/backup/*
+/etc/lvm/archive/*
+/etc/lvm/.cache
+/etc/udev/rules.d/z25_persistent-net.rules
+*/.journal
+/cdrom/*
+/floppy/*
+/etc/adjtime
+/mnt/*
+/tmp/*
+/home/si/

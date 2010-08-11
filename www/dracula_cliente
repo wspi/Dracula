@@ -1,0 +1,63 @@
+#!/bin/bash
+# Daniel Nicoletti - 2008-01-11
+# Atualizado por Wagner Spirigoni - 2010-07-17
+# mata o dhcp
+kill -9 `ps x |grep dhclient| awk '{print $1}'` 2> /dev/null
+# mata as quotas
+quotaoff -a 2> /dev/null
+
+SERVER="192.168.200.254"
+
+# verifica se o dialog esta instalado
+dpkg -l dialog | grep ^i 1> /dev/null
+if [ $? -ne 0 ]; then
+    aptitude install dialog -y
+    if [ $? -ne 0 ]; then
+        echo Nao foi possivel instalar o pacote dialog.
+        echo Por favor configure o APT.
+        exit 0
+    fi
+fi
+# verifica se o ssh esta instalado
+dpkg -l ssh | grep ^i 1> /dev/null
+if [ $? -ne 0 ]; then
+    aptitude install ssh -y
+    if [ $? -ne 0 ]; then
+        echo Nao foi possivel instalar o pacote ssh.
+        echo Por favor configure o APT.
+        exit 0
+    fi
+fi
+# Verifica se o rsync esta instado
+dpkg -l rsync | grep ^i 1> /dev/null
+if [ $? -ne 0 ]; then
+    aptitude install rsync -y
+    if [ $? -ne 0 ]; then
+        echo Nao foi possivel instalar o pacote rsync.
+        echo Por favor configure o APT.
+        exit 0                                               12
+    fi
+fi
+
+rm /etc/dracula_rsyncd.conf
+rm /home/si/excludes.txt
+rm /home/si/download.py
+
+cd /etc/
+wget http://$SERVER/dracula_rsyncd.conf
+
+cd /home/si/
+wget http://$SERVER/excludes.txt
+wget http://$SERVER/download.py
+chmod +x /home/si/download.py
+
+aptitude clean > /dev/null
+iptables -F INPUT
+iptables -F OUTPUT
+iptables -F FORWARD
+iptables -P INPUT ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -P FORWARD ACCEPT
+rsync --daemon --config=/etc/dracula_rsyncd.conf --port 873
+netcat -l -p 9090 -c "/home/si/download.py"&
+netcat -l -p 9091 -c "init 0" &
